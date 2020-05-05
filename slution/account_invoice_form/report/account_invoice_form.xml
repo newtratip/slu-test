@@ -1,0 +1,253 @@
+<odoo>
+    <!-- Copyright 2020 Ecosoft Co., Ltd (http://ecosoft.co.th/)-->
+    <template id="slution_invoice_form">
+        <div class="header">
+            <div class="row">
+                <div class="col-9">
+                    <t t-set="company" t-value="o.company_id"/>
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 70px;" alt="Logo"/>
+                </div>
+                <div class="col-3 text-center">
+                    <h3>ใบส่งของ</h3>
+                    <h5>(<t t-if="i == 0">ต้นฉบับ</t><t t-if="i == 1">สำเนา</t><t t-if="i == 2">สำหรับบริษัท</t><t t-if="i == 3">สำหรับบัญชี</t>)</h5>
+                </div>
+            </div>
+            <div class="row mt16">
+                <div class="col-8">
+                    <div class="row">
+                        <div class="col-3">
+                            <p>ลูกค้า</p>
+                        </div>
+                        <div class="col-9">
+                            <span t-field="o.partner_id.name"/><br/>
+                            <span t-field="o.partner_id.street"/>
+                            <span t-field="o.partner_id.street2"/>
+                            <span t-field="o.partner_id.city"/>
+                            <span t-field="o.partner_id.state_id.name"/>
+                            <span t-field="o.partner_id.country_id.name"/>
+                            <span t-field="o.partner_id.zip"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="row">
+                        <div class="col-4">
+                            <p>เลขที่</p>
+                        </div>
+                        <div class="col-8">
+                            <span t-field="o.name"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt16">
+                <div class="col-8">
+                    <div class="row">
+                        <div class="col-3">
+                            <p>Remark</p>
+                        </div>
+                        <div class="col-9">
+                            <span t-field="o.ref"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="row">
+                        <div class="col-4">
+                            <p>วันที่</p>
+                        </div>
+                        <div class="col-8">
+                            <span t-field="o.invoice_date"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="article">
+            <t t-set="datas" t-value="o._get_datas()"/>
+            <t t-set="n" t-value="1"/>
+            <table class="table table-sm table-bordered table-condensed mt8" style="border: 1px solid black;">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 5%;">No</th>
+                        <th class="text-center" style="width: 50%;">รหัสสินค้า/รายละเอียด</th>
+                        <th class="text-center" style="width: 15%;">จำนวน</th>
+                        <th class="text-center" style="width: 15%;">หน่วยละ</th>
+                        <th class="text-center" style="width: 15%;">จำนวนเงิน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="datas['invoice_lines']" t-as="line" style="page-break-inside: avoid !important;">
+                        <td class="text-center">
+                            <span t-esc="n"/>
+                            <t t-set="n" t-value="n+1"/>
+                        </td>
+                        <td>
+                            <span t-esc="line['description']" t-options="{'widget': 'text'}"/>
+                            <t t-if="line['lots']">
+                                <div>Serial:</div>
+                                <table class="table table-sm table-bordered table-condensed mt8" style="border: 0px;margin-top: -30px !important;">
+                                    <thead>
+                                        <tr>
+                                            <th style="height: 20px;border: 0px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="line['lots']" t-as="lot">
+                                            <td style="border: 0px;padding-left:20px;"><span t-esc="lot"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </td>
+                        <td class="text-center">
+                            <span t-esc="line['quantity'] - int(line['quantity']) == 0.0 and int(line['quantity']) or line['quantity']"/>
+                            <span t-esc="line['product_uom']"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-esc="'{0:,.2f}'.format(line['price_unit'])"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-esc="'{0:,.2f}'.format(line['price_subtotal'])"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="clearfix">
+                <div class="row">
+                    <div class="col-6">
+                    </div>
+                    <div class="col-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td>
+                                    รวมเป็นเงิน
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="'{0:,.2f}'.format(datas['amount_subtotal'])"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    หักส่วนลด
+                                </td>
+                                <td class="text-right">
+                                    <t t-if="datas['discount']">
+                                        <span t-esc="'{0:,.2f}'.format(datas['discount'])"/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    ยอดหลังหักส่วนลด
+                                </td>
+                                <td class="text-right">
+                                    <t t-if="datas['discount']">
+                                        <span t-esc="'{0:,.2f}'.format(datas['amount_after_discount'])"/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    หักเงินมัดจำ
+                                </td>
+                                <td class="text-right">
+                                    <t t-if="datas['deposit']">
+                                        <span t-esc="'{0:,.2f}'.format(datas['deposit'])"/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    จำนวนเงินหลังหักมัดจำ
+                                </td>
+                                <td class="text-right">
+                                    <t t-if="datas['deposit']">
+                                        <span t-esc="'{0:,.2f}'.format(datas['amount_after_deposit'])"/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    ภาษีมูลค่าเพิ่ม 7%
+                                </td>
+                                <td class="text-right">
+                                    <t t-if="datas['amount_tax']">
+                                        <span t-esc="'{0:,.2f}'.format(datas['amount_tax'])"/>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    จำนวนเงินรวมทั้งสิ้น
+                                </td>
+                                <td class="text-right" style="border-bottom: double;">
+                                    <span t-esc="'{0:,.2f}'.format(datas['amount_total'])"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="row mb16">
+                <div class="col-1">
+                </div>
+                <div class="col-11">
+                    <p>ได้รับสินค้าตามรายการข้างบนนี้ไว้ถูกต้องและอยู่ในสภาพเรียบร้อยทุกประการ</p>
+                </div>
+            </div>
+            <div class="row mt16">
+                <div class="col-1">
+                </div>
+                <div class="col-5">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <p>ผู้รับสินค้า</p>
+                        </div>
+                        <div class="col-8" style="border-bottom: 1px solid black;">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <p>วันที่</p>
+                        </div>
+                        <div class="col-8" style="border-bottom: 1px solid black;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-5">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <p>ผู้ส่งสินค้า</p>
+                        </div>
+                        <div class="col-8" style="border-bottom: 1px solid black;">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <p>วันที่</p>
+                        </div>
+                        <div class="col-8" style="border-bottom: 1px solid black;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-1"/>
+            </div>
+            <p class="text-right mt32">
+                Page: <span class="page"/> / <span class="topage"/>
+            </p>
+        </div>
+    </template>
+    <template id="slution_invoice_form_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="ncopies" t-value="4"/>
+                <t t-foreach="range(ncopies)" t-as="i">
+                    <t t-call="slution.slution_invoice_form"/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
